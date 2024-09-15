@@ -18,9 +18,9 @@ login_manager = LoginManager()
 login_manager.init_app(app)
 db.init_app(app)
 
-from routes import main_bp
-from api_routes import api_bp
-from admin_panel import admin
+from routes.routes import main_bp
+from routes.api_routes import api_bp
+from routes.admin_panel import admin
 
 app.register_blueprint(main_bp)
 app.register_blueprint(api_bp)

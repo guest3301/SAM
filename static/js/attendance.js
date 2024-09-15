@@ -2,7 +2,7 @@ document.getElementById('view-attendance').addEventListener('click', function() 
     const date = document.getElementById('attendance-date').value;
     const classID = document.getElementById('class-select').value;
     const subject = document.getElementById('subject-select').value;
-    if (date && classID) {
+    if (date && classID && subject) {
         fetch(`/attendance?date=${date}&class_id=${classID}&subject=${subject}`)
             .then(response => response.json())
             .then(data => {
@@ -17,7 +17,7 @@ document.getElementById('view-attendance').addEventListener('click', function() 
                 });
             });
     } else {
-        alert('Please select a date, subject and class.');
+       document.getElementById('students-container').innerHTML = 'Please select a date, subject and class.';
     }
 });
 
@@ -69,8 +69,8 @@ document.getElementById('submit-attendance').addEventListener('click', function(
     })
     .then(response => response.json())
     .then(data => {
-        alert(data.message);
-        document.getElementById('students-container').innerHTML = '';
+       
+        document.getElementById('students-container').innerHTML = data.message;
     })
     .catch((error) => {
         console.error('Error:', error);

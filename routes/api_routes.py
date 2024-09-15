@@ -3,10 +3,12 @@ from flask_login import login_required, current_user
 from models import db, Student, Attendance, Class, Teacher
 from datetime import datetime
 import pytz, os
-from pytz import timezone
 import openpyxl
 from werkzeug.utils import secure_filename
 from flask import current_app
+
+import random
+from datetime import timedelta
 
 api_bp = Blueprint('api', __name__)
 
@@ -147,10 +149,9 @@ def get_attendance():
 @login_required
 def get_students_by_grade():
     class_id = request.args.get("class_id")
-    subject = request.args.get("subject")
     students = Student.query.filter_by(class_id=class_id).all()
     if not students:
-        return jsonify({"error": "No students found for the given class and subject."}), 404
+        return jsonify({"error": "No students found for the given class."}), 404
     current_date = datetime.now(pytz.timezone('Asia/Kolkata')).date()
     students_data = []
     for student in students:
@@ -159,12 +160,6 @@ def get_students_by_grade():
         students_data.append({"id": student.id, "roll_no": student.roll_no, "name": student.name, "present": present_status})
     return jsonify(students_data), 200
 
-@api_bp.route("/api/attendance/<int:user_id>", methods=["GET"])
-def get_attendance_for_user(user_id):
-    attendance_records = Attendance.query.filter_by(student_id=user_id).all()
-    records = [{"date": record.date.strftime("%Y-%m-%d"), "present": record.present, "student_name": record.student.full_name} for record in attendance_records]
-    return jsonify({"attendance_records": records})
-
 @api_bp.route('/api/attendance', methods=['POST'])
 @login_required
 def update_attendance():
@@ -172,14 +167,12 @@ def update_attendance():
     class_id = data.get('class_id')
     attendance_data = data.get('attendance')
     subject = data.get('subject')
-
-    # Check if the current user is allowed to teach the subject
     if subject not in current_user.subjects:
         abort(403, description="You are not authorized to handle this subject.")
 
     assigned_class = Class.query.join(Teacher).filter(Class.id == class_id, Teacher.id == current_user.id).first()
     if not assigned_class:
-        abort(403, description="You do not have permission to modify attendance for this class.")
+        abort(403, description="You do not have permission to modify/view attendance for this class.")
     for record in attendance_data:
         student_id = record.get('student_id')
         present = record.get('present')
@@ -193,4 +186,87 @@ def update_attendance():
     db.session.commit()
     return jsonify({"message": "Attendance updated successfully"}), 200
 
+
+@api_bp.route("/attendance/low-attendance", methods=["GET"])
+@login_required
+def get_low_attendance_students():
+    class_id = request.args.get("class_id")
+    subject = request.args.get("subject")
+    year = request.args.get("year", datetime.now().year)
+    month = request.args.get("month", datetime.now().month)
+    
+    if not class_id or not subject:
+        return jsonify({"error": "Class ID and subject are required"}), 400
+    
+    if subject not in current_user.subjects:
+        abort(403, description="You are not authorized to handle this subject.")
+
+    assigned_class = Class.query.join(Teacher).filter(Class.id == class_id, Teacher.id == current_user.id).first()
+    if not assigned_class:
+        abort(403, description="You do not have permission to modify/view attendance for this class.")
+    students = Student.query.filter_by(class_id=class_id).all()
+    
+    low_attendance_students = []
+    
+    for student in students:
+        total_attendance_days = Attendance.query.filter(
+            Attendance.student_id == student.id,
+            Attendance.subject == subject,
+            db.extract('year', Attendance.date) == year,
+            db.extract('month', Attendance.date) == month
+        ).count()
+
+        present_days = Attendance.query.filter(
+            Attendance.student_id == student.id,
+            Attendance.present == True,
+            Attendance.subject == subject,
+            db.extract('year', Attendance.date) == year,
+            db.extract('month', Attendance.date) == month
+        ).count()
+        
+        if total_attendance_days > 0:
+            attendance_percentage = (present_days / total_attendance_days) * 100
+            if attendance_percentage < 50:
+                low_attendance_students.append({
+                    "id": student.id,
+                    "roll_no": student.roll_no,
+                    "name": student.name,
+                    "attendance_percentage": attendance_percentage
+                })
+
+    return jsonify({"students": low_attendance_students}), 200
+
+
+@api_bp.route("/attendance/populate-dummy", methods=["POST"])
+@login_required
+def populate_dummy_data():
+    class_id = request.form.get("class_id")
+    subject = request.form.get("subject")
+    teacher_id = current_user.id
+    days_in_month = int(request.form.get("days", 30))  # Defaults to 30 days
+
+    if not class_id or not subject:
+        return jsonify({"error": "Class ID and subject are required"}), 400
+    students = Student.query.filter_by(class_id=class_id).all()
+    
+    try:
+        for day_offset in range(days_in_month):
+            date = datetime.now() - timedelta(days=(days_in_month - day_offset))
+
+            for student in students:
+                present = random.choice([True, False])  # Randomly decide if the student was present
+                new_attendance = Attendance(
+                    date=date.date(),
+                    present=present,
+                    subject=subject,
+                    student_id=student.id,
+                    teacher_id=teacher_id
+                )
+                db.session.add(new_attendance)
+        
+        db.session.commit()
+        return jsonify({"success": True, "message": "Dummy data added successfully"}), 200
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({"success": False, "message": str(e)}), 500
 

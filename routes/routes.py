@@ -47,7 +47,7 @@ def register():
     if user_id:
         return render_template("index.html")
     else:
-        new_user = Teacher(name="admin", password="admin.1337", subjects=[])
+        new_user = Teacher(name="admin", password="admin", subjects=[])
         db.session.add(new_user)
         db.session.commit()
         return redirect(url_for("main.login"))
@@ -78,6 +78,12 @@ def attendance():
     students = Student.query.all()
     class_ids = [i for i in range(1, 5)]
     return render_template("attendance.html", class_ids=class_ids, user=current_user, students=students)
+
+@main_bp.route("/attendance-dashboard", methods=["GET"])
+@login_required
+def attendance_dashboard():
+    class_ids = [i for i in range(1, 5)]
+    return render_template("attendance_dashboard.html", class_ids=class_ids)
 
 @main_bp.route("/settings", methods=["GET", "POST"])
 @login_required
