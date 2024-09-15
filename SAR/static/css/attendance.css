@@ -1,0 +1,15 @@
+.student-div {
+    display: inline-block;
+    padding: 10px;
+    margin: 5px;
+    border-radius: 5px;
+    cursor: pointer;
+}
+.student-div.present {
+    background-color: green;
+    color: white;
+}
+.student-div.absent {
+    background-color: red;
+    color: white;
+}
