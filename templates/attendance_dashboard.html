@@ -7,9 +7,9 @@
 <div>
     <label for="class-select">Select Class:</label>
     <select id="class-select">
-        <option value="">Select Class ID</option>
-        {% for class_id in class_ids %}
-        <option value="{{ class_id }}">{{ class_id }}</option>
+        <option value="">Select Class name</option>
+        {% for class_name in class_names %}
+        <option value="{{ class_name.name }}">{{ class_name.name }}</option>
         {% endfor %}
     </select>
 
@@ -48,9 +48,9 @@
 <div>
     <label for="dummy-class-select">Class:</label>
     <select id="dummy-class-select">
-        <option value="">Select Class ID</option>
-        {% for class_id in class_ids %}
-        <option value="{{ class_id }}">{{ class_id }}</option>
+        <option value="">Select Class name</option>
+        {% for class_name in class_names %}
+        <option value="{{ class_name.name }}">{{ class_name.name }}</option>
         {% endfor %}
     </select>
 

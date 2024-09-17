@@ -7,9 +7,9 @@
 <div id="x" >
 <!-- Dropdown for selecting class -->
 <select id="class-select">
-    <option value="">Select Class ID</option>
-    {% for class_id in class_ids %}
-    <option value="{{ class_id }}">{{ class_id }}</option>
+    <option value="">Select Class name</option>
+    {% for class_name in class_names %}
+    <option value="{{ class_name.name }}">{{ class_name.name }}</option>
     {% endfor %}
 </select>
 <select id="subject-select">

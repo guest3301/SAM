@@ -7,7 +7,9 @@
     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/bootstrap.min.css') }}">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css" integrity="sha512-x5d6Z1IBL/w5U5w5z6BWRmMKyEpCpG9X3m3hepVJhYiYH7c4avOw4l7VzGyKrQ2Sv9N6+eS7GcKMb/jI2Jvblw==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css"
+        integrity="sha512-x5d6Z1IBL/w5U5w5z6BWRmMKyEpCpG9X3m3hepVJhYiYH7c4avOw4l7VzGyKrQ2Sv9N6+eS7GcKMb/jI2Jvblw=="
+        crossorigin="anonymous" referrerpolicy="no-referrer" />
     <script src="https://kit.fontawesome.com/ef6ed19089.js" crossorigin="anonymous"></script>
     {% block head %}{% endblock %}
 </head>
@@ -15,7 +17,8 @@
 <body>
     <nav class="navbar navbar-expand-lg navbar-light bg-light navbar-custom" id="navBar">
         <a class="navbar-brand navbar-brand-custom" href="#">SAMS</a>
-        <button id="navBar" class="navbar-toggler navbar-toggler-custom" type="button" data-bs-toggle="collapse" data-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+        <button id="navBar" class="navbar-toggler navbar-toggler-custom" type="button" data-bs-toggle="collapse"
+            data-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
             <span class="navbar-toggler-icon"></span>
         </button>
         <div class="collapse navbar-collapse" id="navbarNav">
@@ -47,23 +50,33 @@
             </ul>
         </div>
     </nav>
-
-    <div class="container mt-4" style="overflow-x:auto;">
-        {% with messages = get_flashed_messages(with_categories=true) %}
-        {% if messages %}
-        {% for category, message in messages %}
-        <div class="alert alert-{{ category }} alert-dismissible fade show alert-custom" role="alert">
-            {{ message }}
-            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close" onclick="this.parentElement.remove()"></button>
-        </div>
-        </div>
-        {% endfor %}
-        {% endif %}
-        {% endwith %}
-
-        {% block content %}{% endblock %}
+    <div id="flash-messages" class="flash-message"></div>
+    {% block content %}{% endblock %}
     </div>
-
+    <style>
+        .flash-message {
+          padding: 10px ;
+          margin-bottom: 10px;
+          border-radius: 4px;
+          position: relative;
+        }
+        .flash-message.success {
+          background-color: #d4edda;
+          color: #155724;
+        }
+        .flash-message.error {
+          background-color: #f8d7da;
+          color: #721c24;
+        }
+        .close-btn {
+          position: absolute;
+          top: 50%;
+          right: 10px;
+          transform: translateY(-50%);
+          cursor: pointer;
+          font-weight: bold;
+        }
+      </style>
     <script>
         document.addEventListener("DOMContentLoaded", () => {
             const navBar = document.getElementById("navBar");
@@ -81,6 +94,20 @@
         function hideModal(modal) {
             document.querySelector('.modal-overlay').style.display = 'none';
             modal.style.display = 'none';
+        }
+
+        function showFlashMessage(message, type) {
+            const flashMessages = document.getElementById('flash-messages');
+            const messageDiv = document.createElement('div');
+            messageDiv.className = `flash-message ${type}`;
+            messageDiv.innerHTML = `${message} <span class="close-btn">&times;</span>`;
+            flashMessages.appendChild(messageDiv);
+            setTimeout(() => {
+                messageDiv.remove();
+            }, 3000);
+            messageDiv.querySelector('.close-btn').addEventListener('click', () => {
+                messageDiv.remove();
+            });
         }
     </script>
 

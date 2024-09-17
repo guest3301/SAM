@@ -1,15 +1,14 @@
 {% extends "base.html" %}
 {% block content %}
   <h2>Add Student</h2>
-  <div id="flash-messages"></div>
   <form id="add-student-form">
     <div>
       <label for="full_name">Full Name:</label>
       <input type="text" id="full_name" name="full_name" required>
     </div>
     <div>
-      <label for="class_id">Class ID:</label>
-      <input type="number" id="class_id" name="class_id" required>
+      <label for="class_name">Class name:</label>
+      <input type="text" id="class_name" name="class_name" required>
     </div>
     <div>
       <label for="roll_no">Roll No.:</label>
@@ -22,8 +21,8 @@
   <hr> <h2>OR</h2> <hr>
   <form id="uploadForm" enctype="multipart/form-data">
     <input type="file" name="file" accept=".xlsx">
-    <label for="class_id">Class ID:</label>
-    <input type="number" id="class_id" name="class_id" required>
+    <label for="class_name">Class Name:</label>
+    <input type="text" id="class_name" name="class_name" required>
     <button type="submit">Upload & proceed to add..</button>
 </form>
 
@@ -37,7 +36,12 @@
         })
         .then(response => response.json())
         .then(data => {
-            alert(data.message);
+            if(data.success) {
+                showFlashMessage('Students added successfully!', 'success');
+                document.getElementById('uploadForm').reset();
+            } else {
+                showFlashMessage(data.message || 'Failed to add students.', 'error');
+            }
         })
         .catch(error => console.error('Error:', error));
     };
@@ -60,7 +64,7 @@
       const data = {
         full_name: formData.get('full_name'),
         roll_no: formData.get('roll_no'),
-        class_id: formData.get('class_id'),
+        class_name: formData.get('class_name'),
       };
 
 
@@ -73,7 +77,6 @@
       })
       .then(response => response.json())
       .then(data => {
-        const flashMessages = document.getElementById('flash-messages');
         if (data.success) {
           showFlashMessage('Student added successfully!', 'success');
           document.getElementById('add-student-form').reset();
@@ -88,47 +91,7 @@
       });
     });
 
-    function showFlashMessage(message, type) {
-      const flashMessages = document.getElementById('flash-messages');
-      const messageDiv = document.createElement('div');
-      messageDiv.className = `flash-message ${type}`;
-      messageDiv.innerHTML = `${message} <span class="close-btn">&times;</span>`;
-      flashMessages.appendChild(messageDiv);
-
-      // Auto-hide the flash message after 3 seconds
-      setTimeout(() => {
-        messageDiv.remove();
-      }, 3000);
-
-      // Close button handler
-      messageDiv.querySelector('.close-btn').addEventListener('click', () => {
-        messageDiv.remove();
-      });
-    }
   </script>
 
-  <style>
-    .flash-message {
-      padding: 10px;
-      margin-bottom: 10px;
-      border-radius: 4px;
-      position: relative;
-    }
-    .flash-message.success {
-      background-color: #d4edda;
-      color: #155724;
-    }
-    .flash-message.error {
-      background-color: #f8d7da;
-      color: #721c24;
-    }
-    .close-btn {
-      position: absolute;
-      top: 50%;
-      right: 10px;
-      transform: translateY(-50%);
-      cursor: pointer;
-      font-weight: bold;
-    }
-  </style>
+  
 {% endblock %}

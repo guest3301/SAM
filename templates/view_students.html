@@ -13,9 +13,9 @@
   <div class="mb-3">
     <label for="filter-class" class="form-label">Filter by Class:</label>
     <select id="filter-class" class="form-select">
-      <option value="">All</option>
-      {% for class in range(1, 4) %}
-      <option value="{{ class }}">{{ class }}</option>
+      <option value="">Select Class name</option>
+      {% for class_name in class_names %}
+      <option value="{{ class_name.name }}">{{ class_name.name }}</option>
       {% endfor %}
     </select>
     <label for="sort-order" class="form-label">Sort by:</label>
@@ -33,7 +33,7 @@
         <th>ID</th>
         <th>Roll no.</th>
         <th>Full Name</th>
-        <th>Class ID</th>
+        <th>Class Name</th>
         <th>Actions</th>
       </tr>
     </thead>
@@ -43,10 +43,10 @@
         <td>{{ user.id }}</td>
         <td>{{ user.roll_no }}</td>
         <td>{{ user.name }}</td>
-        <td>{{ user.class_id }}</td>
+        <td>{{ user.class.name }}</td>
         <td>
           <button class="btn btn-primary edit-button" data-id="{{ user.id }}" data-fullname="{{ user.name }}"
-            data-class="{{ user.class_id }}" data-roll="{{ user.roll_no }}">Edit</button>
+            data-class="{{ user.class.name }}" data-roll="{{ user.roll_no }}">Edit</button>
           <button class="btn btn-danger delete-button" data-id="{{ user.id }}">Delete</button>
         </td>
       </tr>
@@ -62,6 +62,7 @@
           <h5 class="modal-title">Edit Student</h5>
           <button type="button" class="btn-close" id="close-modal"></button>
         </div>
+        
         <div class="modal-body">
           <form id="edit-student-form">
             <input type="hidden" id="edit-student-id">
@@ -74,8 +75,8 @@
               <input type="text" class="form-control" id="edit-fullname" name="name">
             </div>
             <div class="mb-3">
-              <label for="edit-class" class="form-label">Class ID:</label>
-              <input type="number" class="form-control" id="edit-class" name="class_id">
+              <label for="edit-class" class="form-label">Class name:</label>
+              <input type="text" class="form-control" id="edit-class" name="class_name">
             </div>
             <button type="submit" class="btn btn-primary">Save Changes</button>
             <button type="button" class="btn btn-secondary" id="close-modal"
@@ -110,7 +111,7 @@
         event.preventDefault();
         const studentId = document.getElementById('edit-student-id').value;
         const fullName = document.getElementById('edit-fullname').value;
-        const classID = document.getElementById('edit-class').value;
+        const className = document.getElementById('edit-class').value;
         const roll_no = document.getElementById('edit-roll').value;
 
         fetch(`/api/edit-student/${studentId}`, {
@@ -120,7 +121,7 @@
           },
           body: JSON.stringify({
             name: fullName,
-            class_id: classID,
+            class_name: className,
             roll_no: roll_no,
           }),
         })
@@ -134,15 +135,16 @@
                                 <td>${user.id}</td>
                                 <td>${user.roll_no}</td>
                                 <td>${user.name}</td>
-                                <td>${user.class_id}</td>
+                                <td>${user.class_name}</td>
                                 <td>
-                                    <button class="btn btn-primary edit-button" data-id="${user.id}" data-fullname="${user.name}" data-class="${user.class_id}" data-roll="${user.roll_no}">Edit</button>
+                                    <button class="btn btn-primary edit-button" data-id="${user.id}" data-fullname="${user.name}" data-class="${user.class_name}" data-roll="${user.roll_no}">Edit</button>
                                     <button class="btn btn-danger delete-button" data-id="${user.id}">Delete</button>
                                 </td>`;
               document.getElementById('edit-modal').style.display = "none";
+              showFlashMessage('Student updated successfully!', 'success');
               attachEventListeners();
             } else {
-              alert('Error updating student.');
+              showFlashMessage(data.message || 'Failed to update student.', 'error');
             }
           });
       });
@@ -157,36 +159,43 @@
             .then(data => {
               if (data.success) {
                 document.getElementById(`student-${studentId}`).remove();
+                showFlashMessage('Student deleted successfully!', 'success');
               } else {
-                alert('Error deleting student.');
+                showFlashMessage(data.message || 'Failed to delete student.', 'error');
               }
             });
         });
       });
 
       document.getElementById('filter-button').addEventListener('click', function () {
-        const class_id = document.getElementById('filter-class').value;
+        const class_name = document.getElementById('filter-class').value;
         const sortOrder = document.getElementById('sort-order').value;
 
-        fetch(`/api/students?class_id=${class_id}&sort_order=${sortOrder}`)
+        fetch(`/api/students?class_name=${class_name}&sort_order=${sortOrder}`)
           .then(response => response.json())
           .then(data => {
-            const studentList = document.getElementById('student-list');
-            studentList.innerHTML = '';
-            data.students.forEach(user => {
-              const studentRow = document.createElement('tr');
-              studentRow.id = `student-${user.id}`;
-              studentRow.innerHTML = `
+            if (data.success) {
+              const studentList = document.getElementById('student-list');
+              studentList.innerHTML = '';
+              data.data.students.forEach(user => {
+                const studentRow = document.createElement('tr');
+                studentRow.id = `student-${user.id}`;
+                studentRow.innerHTML = `
                                 <td>${user.id}</td>
                                 <td>${user.roll_no}</td>
                                 <td>${user.name}</td>
-                                <td>${user.class_id}</td>
+                                <td>${user.class_name}</td>
                                 <td>
-                                    <button class="btn btn-primary edit-button" data-id="${user.id}" data-fullname="${user.name}" data-class="${user.class_id}" data-roll="${user.roll_no}">Edit</button>
+                                    <button class="btn btn-primary edit-button" data-id="${user.id}" data-fullname="${user.name}" data-class="${user.class_name}" data-roll="${user.roll_no}">Edit</button>
                                     <button class="btn btn-danger delete-button" data-id="${user.id}">Delete</button>
                                 </td>`;
-              studentList.appendChild(studentRow);
-            });
+                studentList.appendChild(studentRow);
+              });
+              showFlashMessage('Students fetched successfully!', 'success');
+            } else {
+              showFlashMessage(data.message || 'Failed to fetch students.', 'error');
+            }
+
             attachEventListeners();
           });
       });
@@ -199,23 +208,6 @@
             document.getElementById('edit-class').value = this.dataset.class;
             document.getElementById('edit-roll').value = this.dataset.roll;
             editModal.style.display = 'block';
-          });
-        });
-
-        document.querySelectorAll('.delete-button').forEach(button => {
-          button.addEventListener('click', function () {
-            const studentId = this.dataset.id;
-            fetch(`/api/delete-student/${studentId}`, {
-              method: 'DELETE',
-            })
-              .then(response => response.json())
-              .then(data => {
-                if (data.success) {
-                  document.getElementById(`student-${studentId}`).remove();
-                } else {
-                  alert('Error deleting student.');
-                }
-              });
           });
         });
       }

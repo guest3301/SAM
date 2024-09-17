@@ -1,5 +1,4 @@
 from flask import Flask, redirect, url_for
-from flask_socketio import SocketIO
 from flask_login import LoginManager
 from models import db, Teacher
 
@@ -13,7 +12,6 @@ app.config["SESSION_COOKIE_SECURE"] = True
 app.config["SESSION_COOKIE_SAMESITE"] = "Strict"
 app.config["SESSION_COOKIE_ENCODING"] = "utf-8"
 
-socketio = SocketIO(app)
 login_manager = LoginManager()
 login_manager.init_app(app)
 db.init_app(app)
@@ -37,4 +35,4 @@ def unauthorized():
 if __name__ == "__main__":
     with app.app_context():
         db.create_all()
-    socketio.run(app, host="0.0.0.0", port=8000, debug=True)
+    app.run(host="0.0.0.0", port=8000, debug=False)

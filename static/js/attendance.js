@@ -1,51 +1,67 @@
-document.getElementById('view-attendance').addEventListener('click', function() {
+document.getElementById('view-attendance').addEventListener('click', function () {
     const date = document.getElementById('attendance-date').value;
-    const classID = document.getElementById('class-select').value;
+    const class_name = document.getElementById('class-select').value;
     const subject = document.getElementById('subject-select').value;
-    if (date && classID && subject) {
-        fetch(`/attendance?date=${date}&class_id=${classID}&subject=${subject}`)
+    if (date && class_name && subject) {
+        fetch(`/attendance?date=${date}&class_name=${class_name}&subject=${subject}`)
             .then(response => response.json())
             .then(data => {
-                const container = document.getElementById('students-container');
-                container.innerHTML = '';
-                data.forEach(student => {
-                    const studentDiv = document.createElement('div');
-                    studentDiv.id = `student-${student.id}`;
-                    studentDiv.className = student.present ? 'student-div present' : 'student-div absent';
-                    studentDiv.innerText = `${student.roll_no} - ${student.name}`;
-                    container.appendChild(studentDiv);
-                });
+                if (data.success) {
+                    const container = document.getElementById('students-container');
+                    container.innerHTML = '';
+                    data.data.forEach(student => {
+                        const studentDiv = document.createElement('div');
+                        studentDiv.id = `student-${student.id}`;
+                        studentDiv.className = student.present ? 'student-div present' : 'student-div absent';
+                        studentDiv.innerText = `${student.roll_no} - ${student.name}`;
+                        container.appendChild(studentDiv);
+                    });
+                } else {
+                    showFlashMessage(data.message, 'error');
+                }
+
+            }).catch(error => {
+                showFlashMessage('An error occurred while viewing attendance', 'error');
+                console.error('Error:', error);
             });
     } else {
-       document.getElementById('students-container').innerHTML = 'Please select a date, subject and class.';
+        showFlashMessage('Please select a date, subject and class.', 'error');
     }
 });
 
-document.getElementById('x').addEventListener('change', function() {
-    const classID = document.getElementById('class-select').value;
-    if (classID) {
-        fetch(`/api/attendance/students?class_id=${classID}`)
+document.getElementById('x').addEventListener('change', function () {
+    const class_name = document.getElementById('class-select').value;
+    if (class_name) {
+        fetch(`/api/attendance/students?class_name=${class_name}`)
             .then(response => response.json())
             .then(data => {
-                const container = document.getElementById('students-container');
-                container.innerHTML = '';
-                data.forEach(student => {
-                    const studentDiv = document.createElement('div');
-                    studentDiv.id = `student-${student.id}`;
-                    studentDiv.className = 'student-div absent';
-                    studentDiv.innerText = `${student.roll_no} - ${student.name}`;
-                    studentDiv.addEventListener('click', function() {
-                        this.classList.toggle('present');
-                        this.classList.toggle('absent');
+                if (data.success) {
+                    const container = document.getElementById('students-container');
+                    container.innerHTML = '';
+                    data.data.forEach(student => {
+                        const studentDiv = document.createElement('div');
+                        studentDiv.id = `student-${student.id}`;
+                        studentDiv.className = 'student-div absent';
+                        studentDiv.innerText = `${student.roll_no} - ${student.name}`;
+                        studentDiv.addEventListener('click', function () {
+                            this.classList.toggle('present');
+                            this.classList.toggle('absent');
+                        });
+                        container.appendChild(studentDiv);
                     });
-                    container.appendChild(studentDiv);
-                });
+                } else {
+                    showFlashMessage(data.message, 'error');
+                }
+
+            }).catch(error => {
+                showFlashMessage('An error occurred while fetching students', 'error');
+                console.error('Error:', error);
             });
     }
 });
 
-document.getElementById('submit-attendance').addEventListener('click', function() {
-    const class_id = document.getElementById('class-select').value;
+document.getElementById('submit-attendance').addEventListener('click', function () {
+    const class_name = document.getElementById('class-select').value;
     const subject = document.getElementById('subject-select').value;
     let attendance = [];
     document.querySelectorAll('.student-div.present').forEach((div) => {
@@ -65,19 +81,25 @@ document.getElementById('submit-attendance').addEventListener('click', function(
         headers: {
             'Content-Type': 'application/json',
         },
-        body: JSON.stringify({'attendance': attendance, 'class_id': class_id, 'subject': subject }),
+        body: JSON.stringify({ 'attendance': attendance, 'class_name': class_name, 'subject': subject }),
     })
-    .then(response => response.json())
-    .then(data => {
-       
-        document.getElementById('students-container').innerHTML = data.message;
-    })
-    .catch((error) => {
-        console.error('Error:', error);
-    });
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                const container = document.getElementById('students-container');
+                container.innerHTML = '';
+                showFlashMessage('Attendance submitted successfully', 'success');
+            } else {
+                showFlashMessage(data.message, 'error');
+            }
+        })
+        .catch((error) => {
+            showFlashMessage('An error occurred while submitting attendance', 'error');
+            console.error('Error:', error);
+        });
 });
 
-window.onload = function() {
+window.onload = function () {
     var today = new Date();
     var day = String(today.getDate()).padStart(2, '0');
     var month = String(today.getMonth() + 1).padStart(2, '0'); // Months are zero-based

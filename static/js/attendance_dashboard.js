@@ -1,42 +1,50 @@
-document.getElementById('fetch-low-attendance').addEventListener('click', function() {
-    const classID = document.getElementById('class-select').value;
+document.getElementById('fetch-low-attendance').addEventListener('click', function () {
+    const class_name = document.getElementById('class-select').value;
     const subject = document.getElementById('subject-select').value;
     const year = document.getElementById('year-select').value;
     const month = document.getElementById('month-select').value;
 
-    if (classID && subject && year && month) {
-        fetch(`/attendance/low-attendance?class_id=${classID}&subject=${subject}&year=${year}&month=${month}`)
+    if (class_name && subject && year && month) {
+        fetch(`/attendance/low-attendance?class_name=${class_name}&subject=${subject}&year=${year}&month=${month}`)
             .then(response => response.json())
             .then(data => {
-                const tableBody = document.querySelector('#low-attendance-table tbody');
-                tableBody.innerHTML = '';  // Clear previous results
+                if (data.success) {
+                    const tableBody = document.querySelector('#low-attendance-table tbody');
+                    tableBody.innerHTML = '';
+                    data.data.students.forEach(student => {
+                        const row = document.createElement('tr');
+                        row.innerHTML = `
+                            <td>${student.roll_no}</td>
+                            <td>${student.name}</td>
+                            <td>${student.attendance_percentage.toFixed(2)}%</td>
+                        `;
+                        tableBody.appendChild(row);
+                        });
+                        showFlashMessage('Low attendance data fetched successfully.', 'success');
+                    
+                } else {
+                    showFlashMessage(data.message, 'error');
+                }
 
-                data.students.forEach(student => {
-                    const row = document.createElement('tr');
-                    row.innerHTML = `
-                        <td>${student.roll_no}</td>
-                        <td>${student.name}</td>
-                        <td>${student.attendance_percentage.toFixed(2)}%</td>
-                    `;
-                    tableBody.appendChild(row);
-                });
+
+
             })
             .catch(error => {
                 console.error('Error fetching low attendance data:', error);
             });
     } else {
-        alert('Please select class, subject, year, and month.');
+        showFlashMessage('Please select class, subject, year, and month.', 'error');
     }
 });
 
-document.getElementById('populate-dummy-data').addEventListener('click', function() {
-    const classID = document.getElementById('dummy-class-select').value;
+document.getElementById('populate-dummy-data').addEventListener('click', function () {
+    const class_name = document.getElementById('dummy-class-select').value;
     const subject = document.getElementById('dummy-subject-select').value;
     const days = document.getElementById('days-input').value;
 
-    if (classID && subject && days) {
+    if (class_name && subject && days) {
         const formData = new FormData();
-        formData.append('class_id', classID);
+        formData.append('class_name', class_name);
         formData.append('subject', subject);
         formData.append('days', days);
 
@@ -44,19 +52,20 @@ document.getElementById('populate-dummy-data').addEventListener('click', functio
             method: 'POST',
             body: formData
         })
-        .then(response => response.json())
-        .then(data => {
-            if (data.success) {
-                alert('Dummy data populated successfully.');
-            } else {
-                alert(`Error: ${data.message}`);
-            }
-        })
-        .catch(error => {
-            console.error('Error populating dummy data:', error);
-        });
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    showFlashMessage('Dummy data populated successfully.', 'success');
+                } else {
+                    showFlashMessage(data.message, 'error');
+                }
+            })
+            .catch(error => {
+                showFlashMessage('An error occurred while populating dummy data.', 'error');
+                console.error('Error populating dummy data:', error);
+            });
     } else {
-        alert('Please fill out all fields.');
+        showFlashMessage('Please fill out all fields.', 'error');
     }
 });
 function date() {

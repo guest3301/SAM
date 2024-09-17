@@ -38,8 +38,6 @@
             <div class="card-body">
                 <form id="create-class-form">
                     <div class="form-group">
-                        <label for="class-id">Class ID</label>
-                        <input type="text" class="form-control" id="class-id" placeholder="Enter class ID">
                         <label for="class-name">Class name</label>
                         <input type="text" class="form-control" id="class-name" placeholder="Enter class name">
                     </div>
@@ -57,12 +55,12 @@
             <div class="card-body">
                 <form id="assign-class-form">
                     <div class="form-group">
-                        <label for="teacher-id">Teacher ID</label>
-                        <input type="text" class="form-control" id="teacher-id" placeholder="Enter teacher ID">
+                        <label for="teacher-name">Teacher Name</label>
+                        <input type="text" class="form-control" id="teacher-name" placeholder="Enter teacher name">
                     </div>
                     <div class="form-group">
-                        <label for="class-ids">Class IDs (comma-separated)</label>
-                        <input type="text" class="form-control" id="class-ids" placeholder="Enter class IDs">
+                        <label for="class-names">Class Names (comma-separated)</label>
+                        <input type="text" class="form-control" id="class-names" placeholder="Enter class names">
                     </div>
                     <button type="submit" class="btn btn-primary">Assign Classes</button>
                 </form>
@@ -78,8 +76,8 @@
             <div class="card-body">
                 <form id="add-subjects-form">
                     <div class="form-group">
-                        <label for="teacher-id1">Teacher ID</label>
-                        <input type="text" class="form-control" id="teacher-id1" placeholder="Enter teacher ID">
+                        <label for="teacher-name1">Teacher Name</label>
+                        <input type="text" class="form-control" id="teacher-name1" placeholder="Enter teacher name">
                     </div>
                     <div class="form-group">
                         <label for="subjects">Subjects (comma-separated)</label>
@@ -87,7 +85,7 @@
                     </div>
                     <button type="submit" class="btn btn-primary">Add subject(s)</button>
                 </form>
-                <div id="add-subject-message" class="mt-3"></div>
+                <div id="add-subjects-message" class="mt-3"></div>
             </div>
         </div>
     </div>
@@ -97,7 +95,6 @@
             // Handle create class form submission
             document.getElementById('create-class-form').addEventListener('submit', function (event) {
                 event.preventDefault();
-                const classID = document.getElementById('class-id').value;
                 const className = document.getElementById('class-name').value;
 
                 fetch('/create_class', {
@@ -105,19 +102,19 @@
                     headers: {
                         'Content-Type': 'application/json'
                     },
-                    body: JSON.stringify({ class_id: classID, class_name: className })
+                    body: JSON.stringify({ class_name: className })
                 })
-                    .then(response => {
-
-                        response.json()
-
-                    })
+                    .then(response => response.json())
                     .then(data => {
-                        document.getElementById('create-class-message').innerHTML = `<div class="alert alert-success">${data.message}</div>`;
+                        if (data.success) {
+                            document.getElementById('create-class-message').innerHTML = `<div class="alert alert-success">${data.message}</div>`;
 
+                        } else {
+                            document.getElementById('create-class-message').innerHTML = `<div class="alert alert-danger">${data.message}</div>`;
+                        }
                     })
                     .catch(error => {
-                        document.getElementById('create-class-message').innerHTML = `<div class="alert alert-danger">${error.message}</div>`;
+                        console.error('Error:', error);
                     });
             });
             // Handle create teacher form submission
@@ -133,61 +130,72 @@
                     },
                     body: JSON.stringify({ username: username, password: pass })
                 })
-                    .then(response => {
-
-                        response.json()
-
-                    })
-                    .then(data => {
-                        document.getElementById('create-teacher-message').innerHTML = `<div class="alert alert-success">${data.message}</div>`;
-
-                    })
-                    .catch(error => {
-                        document.getElementById('create-teacher-message').innerHTML = `<div class="alert alert-danger">${error.message}</div>`;
-                    });
-            });
-            // Handle assign class to teacher form submission
-            document.getElementById('assign-class-form').addEventListener('submit', function (event) {
-                event.preventDefault();
-                const teacherId = document.getElementById('teacher-id').value;
-                const classIds = document.getElementById('class-ids').value.split(',').map(id => id.trim());
-
-                fetch('/assign_class_to_teacher', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify({ teacher_id: teacherId, class_ids: classIds })
-                })
                     .then(response => response.json())
                     .then(data => {
-                        document.getElementById('assign-class-message').innerHTML = `<div class="alert alert-success">${data.message}</div>`;
-                    })
-                    .catch(error => {
-                        document.getElementById('assign-class-message').innerHTML = `<div class="alert alert-danger">${error.message}</div>`;
-                    });
-            });
-            document.getElementById('add-subjects-form').addEventListener('submit', function (event) {
-                event.preventDefault();
-                const teacherId = document.getElementById('teacher-id1').value;
-                const subjects = document.getElementById('subjects').value.split(',').map(subject => subject.trim());
+                        if (data.success) {
+                            document.getElementById('create-teacher-message').innerHTML = `<div class="alert alert-success">${data.message}</div>`;
 
-                fetch('/add_subjects', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify({ teacher_id: teacherId, subjects: subjects })
-                })
-                    .then(response => response.json())
-                    .then(data => {
-                        document.getElementById('add-subjects-message').innerHTML = `<div class="alert alert-success">${data.message}</div>`;
+                        } else {
+                            document.getElementById('create-teacher-message').innerHTML = `<div class="alert alert-danger">${data.message}</div>`;
+                        }
                     })
-                    .catch(error => {
-                        document.getElementById('add-subjects-message').innerHTML = `<div class="alert alert-danger">${error.message}</div>`;
-                    });
-            });
+            })
+                .catch(error => {
+                    document.getElementById('create-teacher-message').innerHTML = `<div class="alert alert-danger">${error.message}</div>`;
+                });
         });
+        // Handle assign class to teacher form submission
+        document.getElementById('assign-class-form').addEventListener('submit', function (event) {
+            event.preventDefault();
+            const teacherName = document.getElementById('teacher-name').value;
+            const classNames = document.getElementById('class-names').value.split(',').map(name => name.trim());
+
+            fetch('/assign_class_to_teacher', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ teacher_name: teacherName, class_names: classNames })
+            })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        document.getElementById('assign-class-message').innerHTML = `<div class="alert alert-success">${data.message}</div>`;
+
+                    } else {
+                        document.getElementById('assign-class-message').innerHTML = `<div class="alert alert-danger">${data.message}</div>`;
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                });
+        });
+        document.getElementById('add-subjects-form').addEventListener('submit', function (event) {
+            event.preventDefault();
+            const teacherName = document.getElementById('teacher-name1').value;
+            const subjects = document.getElementById('subjects').value.split(',').map(subject => subject.trim());
+
+            fetch('/add_subjects', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ teacher_name: teacherName, subjects: subjects })
+            })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        document.getElementById('add-subjects-message').innerHTML = `<div class="alert alert-success">${data.message}</div>`;
+
+                    } else {
+                        document.getElementById('add-subjects-message').innerHTML = `<div class="alert alert-danger">${data.message}</div>`;
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                });
+        });
+
     </script>
 </body>
 

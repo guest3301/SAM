@@ -63,27 +63,26 @@ def logout():
 @login_required
 def view_students():
     users = Student.query.all()
-    return render_template("view_students.html", user=current_user, users=users)
+    class_names = Class.query.all()
+    return render_template("view_students.html", class_names=class_names, users=users)
 
 @main_bp.route("/students/add", methods=['GET'])
 @login_required
 def add_students():
     if request.method == 'GET':
-        users = Student.query.all()
-        return render_template("add_student.html", user=current_user, users=users)
+        return render_template("add_student.html", user=current_user)
     
 @main_bp.route("/student/attendance", methods=["GET"])
 @login_required
 def attendance():
-    students = Student.query.all()
-    class_ids = [i for i in range(1, 5)]
-    return render_template("attendance.html", class_ids=class_ids, user=current_user, students=students)
+    class_names = Class.query.all()
+    return render_template("attendance.html", class_names=class_names)
 
 @main_bp.route("/attendance-dashboard", methods=["GET"])
 @login_required
 def attendance_dashboard():
-    class_ids = [i for i in range(1, 5)]
-    return render_template("attendance_dashboard.html", class_ids=class_ids)
+    class_names = Class.query.all()
+    return render_template("attendance_dashboard.html", class_names=class_names)
 
 @main_bp.route("/settings", methods=["GET", "POST"])
 @login_required
