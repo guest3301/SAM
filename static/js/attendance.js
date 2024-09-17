@@ -1,3 +1,4 @@
+const container = document.getElementById('students-container');
 document.getElementById('view-attendance').addEventListener('click', function () {
     const date = document.getElementById('attendance-date').value;
     const class_name = document.getElementById('class-select').value;
@@ -7,7 +8,6 @@ document.getElementById('view-attendance').addEventListener('click', function ()
             .then(response => response.json())
             .then(data => {
                 if (data.success) {
-                    const container = document.getElementById('students-container');
                     container.innerHTML = '';
                     data.data.forEach(student => {
                         const studentDiv = document.createElement('div');
@@ -17,10 +17,12 @@ document.getElementById('view-attendance').addEventListener('click', function ()
                         container.appendChild(studentDiv);
                     });
                 } else {
+                    container.innerHTML = '';
                     showFlashMessage(data.message, 'error');
                 }
 
             }).catch(error => {
+                container.innerHTML = '';
                 showFlashMessage('An error occurred while viewing attendance', 'error');
                 console.error('Error:', error);
             });
@@ -36,7 +38,6 @@ document.getElementById('x').addEventListener('change', function () {
             .then(response => response.json())
             .then(data => {
                 if (data.success) {
-                    const container = document.getElementById('students-container');
                     container.innerHTML = '';
                     data.data.forEach(student => {
                         const studentDiv = document.createElement('div');
@@ -50,6 +51,7 @@ document.getElementById('x').addEventListener('change', function () {
                         container.appendChild(studentDiv);
                     });
                 } else {
+                    container.innerHTML = '';
                     showFlashMessage(data.message, 'error');
                 }
 
@@ -86,10 +88,10 @@ document.getElementById('submit-attendance').addEventListener('click', function 
         .then(response => response.json())
         .then(data => {
             if (data.success) {
-                const container = document.getElementById('students-container');
                 container.innerHTML = '';
                 showFlashMessage('Attendance submitted successfully', 'success');
             } else {
+                container.innerHTML = '';
                 showFlashMessage(data.message, 'error');
             }
         })
