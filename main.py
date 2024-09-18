@@ -1,6 +1,7 @@
 from flask import Flask, redirect, url_for
 from flask_login import LoginManager
 from models import db, Teacher
+from db_bak import backup_database
 
 app = Flask(__name__)
 app.config['UPLOAD_FOLDER'] = 'uploads'
@@ -35,4 +36,5 @@ def unauthorized():
 if __name__ == "__main__":
     with app.app_context():
         db.create_all()
+    backup_database()
     app.run(host="0.0.0.0", port=8000, debug=False)

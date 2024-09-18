@@ -2,6 +2,7 @@ from flask import render_template, request, Blueprint, abort
 from flask_login import login_required, current_user
 from models import Teacher, Class, db
 from helpers.response import handle_error, make_response
+from db_bak import restore_backup
 
 admin = Blueprint('admin', __name__)
 
@@ -82,3 +83,16 @@ def create_teacher():
         return make_response(True, f"Teacher {username} created successfully", status_code=201)
     else:
         return handle_error("Teacher already exists", 400)
+    
+@admin.route('/restore_db', methods=['POST'])
+@login_required
+def restore_db_backup():
+    if current_user.id != 1:
+        return handle_error("You are not authorized to access this.", 403)
+    date_str = request.args.get('date')
+    if not date_str:
+        return handle_error("Date parameter is required. Date format: YYYY-MM-DD", 400)
+    result = restore_backup(date_str)
+    if "Error" in result:
+        return handle_error(result, 404)
+    return make_response(result, 200)

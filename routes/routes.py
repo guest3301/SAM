@@ -1,7 +1,7 @@
 from flask import render_template, request, redirect, url_for, flash, abort, jsonify, Blueprint
 from flask_login import login_required, current_user, login_user, logout_user
 from models import Teacher, Student, Class, db
-from datetime import datetime
+from helpers.response import make_response, handle_error
 
 main_bp = Blueprint('main', __name__)
 
@@ -17,11 +17,12 @@ def login():
         user = Teacher.query.filter_by(name=username).first()
         if user is not None and user.password == password:
             login_user(user, remember=True)
-            return redirect(url_for("main.index"))
+            return make_response("Successfully logged in.", 200)
         else:
-            flash("Invalid username or password.", "danger")
-            return abort(401, description="Invalid username or password.")
+            return handle_error("Invalid username or password.", 401)
     else:
+        if current_user.is_authenticated:
+            return redirect(url_for("main.index"))
         return render_template("login.html")
 
 @main_bp.route("/register", methods=["GET", "POST"])
@@ -40,7 +41,10 @@ def register():
             flash("Username already exists. Please choose a different one.", "danger")
             return redirect(url_for("main.register"))
     else:
+        if current_user.is_authenticated:
+            return redirect(url_for("main.index"))
         return render_template("register.html")
+    
     '''
     user_id = Teacher.query.filter_by(id="1").first()
     flash(user_id, "info")

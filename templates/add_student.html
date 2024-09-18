@@ -45,9 +45,6 @@
         })
         .catch(error => console.error('Error:', error));
     };
-</script>
-
-  <script>
     function setTodaysDate() {
       var today = new Date();
       var day = String(today.getDate()).padStart(2, '0');
@@ -66,7 +63,6 @@
         roll_no: formData.get('roll_no'),
         class_name: formData.get('class_name'),
       };
-
 
       fetch('/api/add-student', {
         method: 'POST',
@@ -92,6 +88,4 @@
     });
 
   </script>
-
-  
 {% endblock %}
