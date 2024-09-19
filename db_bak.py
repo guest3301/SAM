@@ -37,5 +37,10 @@ def backup_database():
                 os.remove(os.path.join(script_dir, 'instance', filename))
                 print(f'Deleted old backup: {filename}')
 
+def db_path():
+    script_dir = os.path.dirname(os.path.abspath(__file__))
+    db_path = os.path.join(script_dir, 'instance', 'database.sqlite')
+    return db_path
+    
 if __name__ == "__main__":
     backup_database()
